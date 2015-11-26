@@ -24,16 +24,14 @@ BasicGame.Game = function (game) {
 
 BasicGame.Game.prototype = {
   create: function () {
-    //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.setupBackground();
     this.setupPlayer();
+    this.setupBullets();
 
-    // Movement
     this.cursors = this.input.keyboard.createCursorKeys();
   },
 
   update: function () {
-    //  Honestly, just about anything could go here. It's YOUR game after all. Eat your heart out!
     this.processPlayerInput();
   },
 
@@ -44,12 +42,28 @@ BasicGame.Game.prototype = {
 
   setupPlayer: function() {
     this.player = this.add.sprite(this.game.width / 2, this.game.height - 75, 'player');
-    this.physics.arcade.enable(this.player);
-    this.player.body.collideWorldBounds = true;
-    this.player.speed = 300;
+    this.player.anchor.setTo(0.5, 0.5);
     this.player.animations.add('fly', [0, 1, 2], 10, true);
     this.player.animations.add('ghost', [3, 0, 3, 1], 20, true);
     this.player.play('fly');
+    this.physics.arcade.enable(this.player);
+    this.player.speed = 300;
+    this.player.body.collideWorldBounds = true;
+    this.player.body.setSize(60, 50, 0, 5);
+  },
+
+  setupBullets: function() {
+    this.playerBullet = this.add.group();
+    this.playerBullet.enableBody = true;
+    this.playerBullet.physicsBodyType = Phaser.Physics.ARCADE;
+    this.playerBullet.createMultiple(500, 'bullet');
+    this.playerBullet.setAll('anchor.x', 0.5);
+    this.playerBullet.setAll('anchor.y', 0.5);
+    this.playerBullet.setAll('outOfBoundsKill', true);
+    this.playerBullet.setAll('checkWorldBounds', true);
+
+    this.nextShotAt = 0;
+    this.shotDelay = Phaser.Timer.SECOND * 0.1;
   },
 
   processPlayerInput: function() {
@@ -71,6 +85,23 @@ BasicGame.Game.prototype = {
     if(this.input.activePointer.isDown && this.physics.arcade.distanceToPointer(this.player) > 15) {
       this.physics.arcade.moveToPointer(this.player, this.player.speed);
     }
+
+    if(this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.input.activePointer.isDown) {
+      this.fire();
+    }
+  },
+
+  fire: function() {
+    if(this.nextShotAt > this.time.now) return;
+
+    this.nextShotAt = this.time.now + this.shotDelay;
+
+    var bullet;
+    if(this.playerBullet.countDead() === 0) return;
+
+    bullet = this.playerBullet.getFirstExists(false);
+    bullet.reset(this.player.x, this.player.y - 10);
+    bullet.body.velocity.y = -250;
   },
 
   render: function() {
@@ -84,10 +115,10 @@ BasicGame.Game.prototype = {
   },
 
   quitGame: function (pointer) {
-    //  Here you should destroy anything you no longer need.
-    //  Stop music, delete sprites, purge caches, free resources, all that good stuff.
+    this.background.destroy();
+    this.player.destroy();
+    this.playerBullet.destroy();
 
-    //  Then let's go back to the main menu.
     this.state.start('MainMenu');
   }
 };
