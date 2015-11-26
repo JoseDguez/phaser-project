@@ -1,34 +1,31 @@
 BasicGame.MainMenu = function (game) {
-	this.music = null;
-	this.playButton = null;
+	
 };
 
 BasicGame.MainMenu.prototype = {
 	create: function () {
-		//	We've already preloaded our assets, so let's kick right into the Main Menu itself.
-		//	Here all we're doing is playing some music and adding a picture and button
-		//	Naturally I expect you to do something significantly better :)
-
-		//this.music = this.add.audio('titleMusic');
-		//this.music.play();
-
 		this.add.sprite(0, 0, 'titlepage');
 
-		//this.playButton = this.add.button(400, 600, 'playButton', this.startGame, this, 'buttonOver', 'buttonOut', 'buttonOver');
+		this.instructionsTxt = this.add.text(
+			this.game.width / 2, this.game.height / 2 + 80, 'Press SPACE or CLICK the screen to begin.',
+			{font: '20px monospace', fill: '#fff'}
+		).anchor.setTo(0.5, 0.5);
+
+		this.add.text(
+			this.game.width / 2, this.game.height - 90, 'Images assets Copyright (c) 2002 Ari Feldman',
+			{font: '15px monospace', fill: '#fff', align: 'center'}).anchor.setTo(0.5, 0.5);
+		this.add.text(
+			this.game.width / 2, this.game.height - 75, 'Sound assets Copyright (c) 2012 - 2015 Devin Watson aka dklon',
+			{font: '15px monospace', fill: '#fff', align: 'center'}).anchor.setTo(0.5, 0.5);
 	},
 
 	update: function () {
-		//	Do some nice funky main menu effect here
 		if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.input.activePointer.isDown) {
     	this.startGame();
     }
 	},
 
 	startGame: function (pointer) {
-		//	Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
-		//this.music.stop();
-
-		//	And start the actual game
 		this.state.start('Game');
 	}
 };
