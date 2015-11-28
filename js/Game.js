@@ -1,25 +1,5 @@
 BasicGame.Game = function (game) {
-  //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
 
-  this.game;      //  a reference to the currently running game (Phaser.Game)
-  this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
-  this.camera;    //  a reference to the game camera (Phaser.Camera)
-  this.cache;     //  the game cache (Phaser.Cache)
-  this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
-  this.load;      //  for preloading assets (Phaser.Loader)
-  this.math;      //  lots of useful common math operations (Phaser.Math)
-  this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
-  this.stage;     //  the game stage (Phaser.Stage)
-  this.time;      //  the clock (Phaser.Time)
-  this.tweens;    //  the tween manager (Phaser.TweenManager)
-  this.state;     //  the state manager (Phaser.StateManager)
-  this.world;     //  the game world (Phaser.World)
-  this.particles; //  the particle manager (Phaser.Particles)
-  this.physics;   //  the physics manager (Phaser.Physics)
-  this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
-
-  //  You can use any of these from any function within this State.
-  //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 };
 
 BasicGame.Game.prototype = {
@@ -28,6 +8,8 @@ BasicGame.Game.prototype = {
     this.setupPlayer();
     this.setupBullets();
     this.setupEnemies();
+    this.setupExplosions();
+    this.setupText();
 
     this.cursors = this.input.keyboard.createCursorKeys();
   },
@@ -36,6 +18,7 @@ BasicGame.Game.prototype = {
     this.processPlayerInput();
     this.spawnEnemies();
     this.checkCollisions();
+    this.processDelayedEffects();
   },
 
   setupBackground: function() {
@@ -93,6 +76,41 @@ BasicGame.Game.prototype = {
     this.enemyCount = 0;
   },
 
+  setupExplosions: function() {
+    this.explosions = this.add.group();
+    this.explosions.enableBody = true;
+    this.explosions.physicsBodyType = Phaser.Physics.ARCADE;
+    this.explosions.createMultiple(10, 'explosion');
+    this.explosions.setAll('anchor.x', 0.5);
+    this.explosions.setAll('anchor.y', 0.5);
+    this.explosions.setAll('outOfBoundsKill', true);
+    this.explosions.setAll('checkWorldBounds', true);
+
+    this.explosions.forEach(function(explosion) {
+      explosion.animations.add('boom');
+    });
+  },
+
+  setupText: function() {
+    this.instructions = this.add.text(
+		    this.game.width / 2, this.game.height - 100,
+        'Utiliza las flechas para moverte, presiona ESPACIO para disparar\n' +
+        'Hacer click con el mouse realiza ambas.',
+        {font: '20px monospace', fill: '#fff', align: 'center'}
+      );
+
+      this.instructions.anchor.setTo(0.5, 0.5);
+      this.instExpire = this.time.now + Phaser.Timer.SECOND * 5;
+  },
+
+  processDelayedEffects: function() {
+    if(this.instructions.exists && this.time.now > this.instExpire) {
+      //this.game.add.tween(this.instructions).to({y: this.instructions.y}, 250, Phaser.Easing.Linear.None, true);
+      this.game.add.tween(this.instructions).to({alpha: 0}, 250, Phaser.Easing.Linear.None, true);
+      //this.instructions.destroy();
+    }
+  },
+
   processPlayerInput: function() {
     this.player.body.velocity.x = 0;
     this.player.body.velocity.y = 0;
@@ -146,7 +164,19 @@ BasicGame.Game.prototype = {
     enemy.damage(damage);
     if(enemy.alive) {
       enemy.play('hit');
+    } else {
+      this.explode(enemy);
     }
+  },
+
+  explode: function(obj) {
+    if(this.explosions.countDead() === 0) return;
+
+    var explosion = this.explosions.getFirstExists(false);
+    explosion.reset(obj.x, obj.y);
+    explosion.play('boom', 15, false, true);
+    explosion.body.velocity.x = obj.body.velocity.x;
+    explosion.body.velocity.y = obj.body.velocity.y;
   },
 
   fire: function() {
@@ -164,12 +194,12 @@ BasicGame.Game.prototype = {
 
   render: function() {
     // Debug
-    this.game.debug.body(this.player);
-    this.enemyGroup.forEachAlive(this.renderGroup, this);
+    //this.game.debug.body(this.player);
+    //this.enemyGroup.forEachAlive(this.renderGroup, this);
   },
 
-  renderGroup: function(member){
-    this.game.debug.body(member);
+  renderGroup: function(obj){
+    this.game.debug.body(obj);
   },
 
   quitGame: function (pointer) {

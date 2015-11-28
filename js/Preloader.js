@@ -9,6 +9,7 @@ BasicGame.Preloader.prototype = {
 	preload: function () {
 		this.stage.backgroundColor = '#2d2d2d';
 		this.preloadBar = this.add.sprite(300, 400, 'assets/images/preloader-bar.png');
+		this.add.text(this.game.width / 2, 350, 'Cargando...', {font: '20px monospace', fill: '#fff'}).anchor.setTo(0.5, 0.5);
 
 		this.load.setPreloadSprite(this.preloadBar);
 
@@ -19,6 +20,7 @@ BasicGame.Preloader.prototype = {
 
 		this.load.spritesheet('player', 'assets/images/player.png', 64, 64);
 		this.load.spritesheet('greenEnemy', 'assets/images/green-enemy.png', 32, 32);
+		this.load.spritesheet('explosion', 'assets/images/explosion.png', 32, 32);
 		//	+ lots of other required assets here
 	},
 
