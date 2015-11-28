@@ -8,16 +8,17 @@ BasicGame.Preloader = function (game) {
 BasicGame.Preloader.prototype = {
 	preload: function () {
 		this.stage.backgroundColor = '#2d2d2d';
-		this.preloadBar = this.add.sprite(300, 400, 'preloaderBar');
+		this.preloadBar = this.add.sprite(300, 400, 'assets/images/preloader-bar.png');
 
 		this.load.setPreloadSprite(this.preloadBar);
 
-		this.load.image('titlepage', 'assets/titlepage.png');
-		this.load.image('sea', 'assets/bg.png');
+		this.load.image('titlepage', 'assets/images/titlepage.png');
+		this.load.image('sea', 'assets/images/bg.png');
 
-		this.load.image('bullet', 'assets/bullet.png');
+		this.load.image('bullet', 'assets/images/bullet.png');
 
-		this.load.spritesheet('player', 'assets/player.png', 64, 64);
+		this.load.spritesheet('player', 'assets/images/player.png', 64, 64);
+		this.load.spritesheet('greenEnemy', 'assets/images/green-enemy.png', 32, 32);
 		//	+ lots of other required assets here
 	},
 

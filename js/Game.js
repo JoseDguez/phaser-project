@@ -27,12 +27,15 @@ BasicGame.Game.prototype = {
     this.setupBackground();
     this.setupPlayer();
     this.setupBullets();
+    this.setupEnemies();
 
     this.cursors = this.input.keyboard.createCursorKeys();
   },
 
   update: function () {
     this.processPlayerInput();
+    this.spawnEnemies();
+    this.checkCollisions();
   },
 
   setupBackground: function() {
@@ -66,6 +69,30 @@ BasicGame.Game.prototype = {
     this.shotDelay = Phaser.Timer.SECOND * 0.1;
   },
 
+  setupEnemies: function() {
+    this.enemyGroup = this.add.group();
+    this.enemyGroup.enableBody = true;
+    this.enemyGroup.physicsBodyType = Phaser.Physics.ARCADE;
+    this.enemyGroup.createMultiple(100, 'greenEnemy');
+    this.enemyGroup.setAll('anchor.x', 0.5);
+    this.enemyGroup.setAll('anchor.y', 0.5);
+    this.enemyGroup.setAll('outOfBoundsKill', true);
+    this.enemyGroup.setAll('checkWorldBounds', true);
+
+    this.enemyGroup.forEach(function(enemy) {
+      enemy.animations.add('fly', [0,1,2], 20, true);
+      enemy.animations.add('hit', [3, 1, 3, 2], 20, false);
+
+      enemy.events.onAnimationComplete.add(function(e) {
+        e.play('fly');
+      }, this);
+    });
+
+    this.nextEnemyAt = 0;
+    this.enemyDelay = Phaser.Timer.SECOND * 2;
+    this.enemyCount = 0;
+  },
+
   processPlayerInput: function() {
     this.player.body.velocity.x = 0;
     this.player.body.velocity.y = 0;
@@ -78,8 +105,10 @@ BasicGame.Game.prototype = {
 
     if(this.cursors.up.isDown) {
       this.player.body.velocity.y = -this.player.speed;
+      this.player.play('fly');
     } else if(this.cursors.down.isDown) {
       this.player.body.velocity.y = this.player.speed;
+      this.player.play('fly');
     }
 
     if(this.input.activePointer.isDown && this.physics.arcade.distanceToPointer(this.player) > 15) {
@@ -88,6 +117,35 @@ BasicGame.Game.prototype = {
 
     if(this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.input.activePointer.isDown) {
       this.fire();
+    }
+  },
+
+  spawnEnemies: function() {
+    if(this.nextEnemyAt < this.time.now && this.enemyGroup.countDead() > 0) {
+      this.nextEnemyAt = this.time.now + this.enemyDelay;
+
+      var enemy = this.enemyGroup.getFirstExists(false);
+
+      enemy.reset(this.rnd.integerInRange(20, this.game.width - 20), 0, 3);
+
+      enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+      enemy.play('fly');
+    }
+  },
+
+  checkCollisions: function() {
+    this.physics.arcade.overlap(this.playerBullet, this.enemyGroup, this.enemyHit, null, this);
+  },
+
+  enemyHit: function(bullet, enemy) {
+    bullet.kill();
+    this.damageEnemy(enemy, 1);
+  },
+
+  damageEnemy: function(enemy, damage) {
+    enemy.damage(damage);
+    if(enemy.alive) {
+      enemy.play('hit');
     }
   },
 
@@ -107,7 +165,7 @@ BasicGame.Game.prototype = {
   render: function() {
     // Debug
     this.game.debug.body(this.player);
-    //this.group.forEachAlive(this.renderGroup, this);
+    this.enemyGroup.forEachAlive(this.renderGroup, this);
   },
 
   renderGroup: function(member){

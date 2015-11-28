@@ -1,9 +1,9 @@
 # phaser-project
-This is a Shoot 'Em Up game like 1942. It features the sprites from that game, I will be developing this game using Phaser, a framework for game development in HTML5 and JavaScript.
+This is a Shoot 'Em Up game like 1942/1945 game. It features the sprites from that game, I will be developing this game using Phaser, a framework for game development in HTML5 and JavaScript.
 
 ## Goals to achieve
 1. Single player gameplay (done)
-  * Multiple ships to select (pending)
+  * Multiple fighters to select (pending)
   * Multiple bullet types (pending)
 2. Multiple Enemies (pending)
   * Different shot patterns (pending)
